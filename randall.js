@@ -7,67 +7,92 @@ function draw () {
     return Math.PI*deg/180;
   }
 
-  function rotateLine(p1, p2, deg) {
-    var x = p2[0]-p1[0],
-        y = p2[1]-p1[1],
+  function rotatePoint(pivot, p, deg) {
+    var x = p[0]-pivot[0],
+        y = p[1]-pivot[1],
         r = Math.sqrt(x*x + y*y),
-        newX = r*Math.cos(degToRad(deg)) + p1[0],
-        newY = r*Math.sin(degToRad(deg)) + p1[1];
+        newX = r*Math.cos(degToRad(deg)) + pivot[0],
+        newY = r*Math.sin(degToRad(deg)) + pivot[1];
 
     return [newX, newY];
   }
 
-  DEFAULT_ROTATIONS = {
+  DEFAULT_OPTIONS = {
+    position: [canvas.width/2, canvas.height/2], // defaults to center
     leftarm: 65,
     rightarm: 120,
     leftleg: 65,
-    rightleg: 120
+    rightleg: 120,
+    head: 270
   }
 
-  function stickfigure (rotations) {
-    var TORSO_BOTTOM = center,
-        TORSO_TOP = [center[0], center[1] - 50],
-        LEFT_LEG = [TORSO_BOTTOM[0], TORSO_BOTTOM[1] + 50],
-        RIGHT_LEG = [TORSO_BOTTOM[0], TORSO_BOTTOM[1] + 50],
-        HEAD_RADIUS = 20,
-        LEFT_ARM = [TORSO_TOP[0]+20, TORSO_TOP[1] + 40],
-        RIGHT_ARM = [TORSO_TOP[0]-20, TORSO_TOP[1] + 40],
-        p,
-        rotations = extend(DEFAULT_ROTATIONS, rotations);
+  function Stickfigure (options) {
 
+    this.options = extend(DEFAULT_OPTIONS, options);
+
+    this.TORSO_BOTTOM = this.options.position;
+    this.TORSO_TOP = [this.options.position[0], this.options.position[1] - 50];
+    this. LEFT_LEG = [this.TORSO_BOTTOM[0], this.TORSO_BOTTOM[1] + 50];
+    this.RIGHT_LEG = [this.TORSO_BOTTOM[0], this.TORSO_BOTTOM[1] + 50];
+    this.HEAD_RADIUS = 20;
+    this.LEFT_ARM = [this.TORSO_TOP[0]+20, this.TORSO_TOP[1] + 40];
+    this.RIGHT_ARM = [this.TORSO_TOP[0]-20, this.TORSO_TOP[1] + 40];
+  }
+
+  Stickfigure.prototype.drawLine = function(p1, p2) {
     ctx.beginPath();
-    ctx.moveTo(TORSO_BOTTOM[0], TORSO_BOTTOM[1]);
-    ctx.lineTo(TORSO_TOP[0], TORSO_TOP[1]);
+    ctx.moveTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
     ctx.stroke();
+  }
 
+  Stickfigure.prototype.drawCircle = function(point, radius) {
+    ctx.arc(point[0], point[1], radius, 0, 2*Math.PI*radius, false);
+  }
+
+  Stickfigure.prototype.drawHead = function() {
     ctx.beginPath();
-    ctx.moveTo(TORSO_BOTTOM[0], TORSO_BOTTOM[1]);
-    p = rotateLine(TORSO_BOTTOM, LEFT_LEG, rotations.leftleg);
-    ctx.lineTo(p[0], p[1]);
-
-    ctx.moveTo(TORSO_BOTTOM[0], TORSO_BOTTOM[1]);
-    p = rotateLine(TORSO_BOTTOM, RIGHT_LEG, rotations.rightleg);
-    ctx.lineTo(p[0], p[1]);
+    this.drawCircle(rotatePoint(this.TORSO_TOP, [this.TORSO_TOP[0], this.TORSO_TOP[1] - this.HEAD_RADIUS], this.options.head), this.HEAD_RADIUS);
     ctx.stroke();
+  }
 
-    ctx.beginPath();
-    ctx.arc(TORSO_TOP[0], TORSO_TOP[1] - HEAD_RADIUS, HEAD_RADIUS, 0, 2*Math.PI*HEAD_RADIUS, false);
-    ctx.stroke();
+  Stickfigure.prototype.drawTorso = function() {
+    this.drawLine(this.TORSO_BOTTOM, this.TORSO_TOP);
+  }
 
-    ctx.beginPath();
-    ctx.moveTo(TORSO_TOP[0], TORSO_TOP[1]);
-    p = rotateLine(TORSO_TOP, LEFT_ARM, rotations.leftarm);
-    ctx.lineTo(p[0], p[1]);
+  // TORSO_BOTTOM, LEFT_LEG (leftleg) - map?
+  Stickfigure.prototype.drawLeftLeg = function() {
+    this.drawLine(this.TORSO_BOTTOM, rotatePoint(this.TORSO_BOTTOM, this.LEFT_LEG, this.options.leftleg));
+  }
 
-    ctx.moveTo(TORSO_TOP[0], TORSO_TOP[1]);
-    p = rotateLine(TORSO_TOP, RIGHT_ARM, rotations.rightarm);
-    ctx.lineTo(p[0], p[1]);
-    ctx.stroke();
+  Stickfigure.prototype.drawRightLeg = function() {
+    this.drawLine(this.TORSO_BOTTOM, rotatePoint(this.TORSO_BOTTOM, this.RIGHT_LEG, this.options.rightleg));
+  }
 
+  Stickfigure.prototype.drawLeftArm = function() {
+    this.drawLine(this.TORSO_TOP, rotatePoint(this.TORSO_TOP, this.LEFT_ARM, this.options.leftarm));
+  }
+
+  Stickfigure.prototype.drawRightArm = function() {
+    this.drawLine(this.TORSO_TOP, rotatePoint(this.TORSO_TOP, this.RIGHT_ARM, this.options.rightarm));
+  }
+
+  Stickfigure.prototype.draw = function() {
+
+    this.drawHead();
+    this.drawTorso();
+    this.drawLeftLeg();
+    this.drawRightLeg();
+    this.drawLeftArm();
+    this.drawRightArm();
   }
 
   // DSL BEGINS
-  stickfigure({leftleg: -20, rightleg: 100, leftarm: 8, rightarm: 35});
+  var s1 = new Stickfigure({leftleg: -18, rightleg: 100, leftarm: 8, rightarm: 35, head: 290});
+  var s2 = new Stickfigure({position: [100, 200]});
+
+  s1.draw();
+  s2.draw();
 }
 
 
