@@ -1,7 +1,6 @@
 function draw () {
   var canvas = document.getElementById("scene"),
-      ctx = canvas.getContext("2d"),
-      center = [canvas.width/2, canvas.height/2];
+      ctx = canvas.getContext("2d");
 
   function degToRad(deg) {
     return Math.PI*deg/180;
