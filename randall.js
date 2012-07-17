@@ -1,4 +1,63 @@
-function Graph() {}
+function Point (x, y) {
+  this.x = x || 0;
+  this.y = y || 0;
+
+  this.color = "rgb(10,200,10)";
+}
+
+Point.prototype.toString = function () {
+  return "(" + this.x + ", " + this.y + ")";
+}
+
+function slope (p1, p2) {
+  return (p2.y - p1.y) / (p2.x - p1.x);
+}
+
+function distance (p1, p2) {
+  var dy = p2.y - p1.y,
+      dx = p2.x - p1.x;
+  return Math.sqrt(dy*dy + dx*dx);
+}
+
+function getJointPoint (p1, p2, dist) {
+  var mid = pointAlongLine(p1, p2, 0.5),
+      m = slope(p1, p2),
+      np = new Point(mid.x, mid.y),
+      err,
+      lastErr = Infinity,
+      step;
+
+  if (m === 0) {
+    stepX = 0;
+    stepY = 0.1;
+  } else {
+    stepX = 0.01;
+    stepY = - 0.01 / m;
+  }
+
+  do {
+    err = Math.abs((distance(np, p1) - dist) + (distance(np, p2) - dist));
+    if (err > lastErr) {
+      // Reverse direction if error is increasing
+      stepY *= -1;
+      stepX *= -1;
+    }
+    np.x -= stepX; // how to choose direction? i.e., + or -
+    np.y -= stepY;
+  } while (err > 1)
+
+  return np;
+}
+
+function pointAlongLine (p1, p2, percent) {
+    var dx = p2.x - p1.x,
+        dy = p2.y - p1.y,
+        x = p1.x + dx * percent,
+        y = p1.y + dy * percent;
+
+    return new Point(x, y);
+}
+/*(function Graph() {}
 
 // each node has a position (x, y) and a set of edges
 // keep edge distance fixed
@@ -28,14 +87,47 @@ function adjustGraph...(g, seg1, seg2) {
       // find new loc of n, given dist(np y) == dist(n y)
 
   node([x y], [& edges])
+}*/
+
+function drawPoint (p) {
+  ctx.fillStyle = p.color;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
+  ctx.fill();
 }
 
-
-
-
 function draw () {
-  var canvas = document.getElementById("scene"),
-      ctx = canvas.getContext("2d");
+  // Refactor to be less gross
+  canvas = document.getElementById("scene");
+  ctx = canvas.getContext("2d");
+
+  var torsoBottom = new Point(200, 250),
+      leftLeg = new Point(170, 340),
+      rightLeg = new Point(230, 340),
+      legLen = distance(torsoBottom, leftLeg),
+      torsoTop = new Point(200, 175),
+      leftArm = new Point(170, 185),
+      rightArm = new Point(230, 185),
+      armLen = distance(torsoTop, leftArm);
+
+  torsoBottom.y += 50;
+  torsoTop.y += 50;
+
+  var leftKnee = getJointPoint(torsoBottom, leftLeg, legLen/2),
+      rightKnee = getJointPoint(torsoBottom, rightLeg, legLen/2);
+
+  torsoBottom.color = "rgb(10, 10, 200)";
+
+  drawLine(torsoBottom, leftKnee);
+  drawLine(leftKnee, leftLeg);
+
+  drawLine(torsoBottom, rightKnee);
+  drawLine(rightKnee, rightLeg);
+
+  drawLine(torsoTop, torsoBottom);
+
+  drawLine(torsoTop, leftArm);
+  drawLine(torsoTop, rightArm);
 
   function degToRad(deg) {
     return Math.PI*deg/180;
@@ -83,7 +175,7 @@ function draw () {
     //this.getAngle(p1, p2);
     percent = percent || .5;
 
-    var bp = this.getBreakPoint(p1, p2, percent),
+    var bp = pointAlongLine(p1, p2, percent),
         newpoint = rotatePoint(bp, p2, deg);
 
     this.drawLine(p1, bp);
@@ -91,24 +183,18 @@ function draw () {
   }
 
   // create wrapper, just p1 instead?
-  Stickfigure.prototype.drawLine = function(p1, p2) {
+  function drawLine(p1, p2) {
     ctx.beginPath();
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
+
+    drawPoint(p1);
+    drawPoint(p2);
   }
 
   Stickfigure.prototype.drawCircle = function(point, radius) {
     ctx.arc(point[0], point[1], radius, 0, 2*Math.PI*radius, false);
-  }
-
-  Stickfigure.prototype.getBreakPoint = function(p1, p2, percent) {
-    var dx = p2[0] - p1[0],
-        dy = p2[1] - p1[1],
-        x = p1[0] + dx * percent,
-        y = p1[1] + dy * percent;
-
-    return [x, y];
   }
 
   Stickfigure.prototype.drawHead = function() {
@@ -154,8 +240,8 @@ function draw () {
   //var s1 = new Stickfigure({leftleg: -18, rightleg: 100, leftarm: 8, rightarm: 35, head: 290});
   //var s2 = new Stickfigure({position: [100, 200]});
 
-  var s1 = new Stickfigure();
-  s1.draw();
+  //var s1 = new Stickfigure();
+  //s1.draw();
 }
 
 // use real library
