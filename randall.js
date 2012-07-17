@@ -77,8 +77,8 @@ function adjustGraph...(g, seg1, seg2) {
 
 // pseudo point finder
 // def: p1, bp, p2, p1 into np (new point)
-// 
-  
+//
+
 }
   // graph: 5 nodes
 
@@ -96,10 +96,62 @@ function drawPoint (p) {
   ctx.fill();
 }
 
+COMPASS_ROSE = {
+  N   : 90,
+  NNE : 67.5,
+  NE  : 45,
+  ENE : 22.5,
+  E   : 0,
+  ESE : 337.5,
+  SE  : 315,
+  SSE : 292.5,
+  S   : 270,
+  SSW : 247.5,
+  SW  : 225,
+  WSW : 202.5,
+  W   : 180,
+  WNW : 157.5,
+  NW  : 135,
+  NNW : 112.5
+}
+
+function Vector (direction, magnitude) {
+  if (typeof direction === "string") {
+    direction = COMPASS_ROSE[direction.toUpperCase()]
+  }
+
+  this.direction = direction; // in degrees
+  this.magnitude = magnitude;
+
+  // want to take degrees and magnitude and turn it into vector pair [x, y]
+  // 0 degrees => (m, 0)
+  // 90 degrees => (0, m)
+  // 45 degrees => (sqrt(m), sqrt(m))
+
+  this.x = x;
+  this.y = y;
+}
+
+function calcBottom (vec, top) {
+  return bottom;
+}
+
+function Limb (length, direction, top) {
+  this.length = length;
+  this.direction = COMPASS_ROSE[direction.toUpperCase()];
+  this.top = top; // a point
+  this.bottom = calcBottom(length, direction, top);
+}
+
 function draw () {
   // Refactor to be less gross
   canvas = document.getElementById("scene");
   ctx = canvas.getContext("2d");
+
+  torso = new Limb(50, bottom: [200, 170]);
+  leftLeg = new Limb(40, top: torso.bottom);
+
+
 
   var torsoBottom = new Point(200, 250),
       leftLeg = new Point(170, 340),
