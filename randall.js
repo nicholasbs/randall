@@ -1,3 +1,38 @@
+function Graph() {}
+
+// each node has a position (x, y) and a set of edges
+// keep edge distance fixed
+function moveNode(node, pos, graph) {
+  oldpos = graph.node.pos();
+  neighbors = all nodes directly connected to our node;
+  graph.node.pos(pos);
+
+  // moved point, now solve length constraint
+  adjustGraphWithConstraint(new_graph);
+}
+
+// takes 3 points, incl the new point, also two lengths to preserve
+function adjustGraph...(g, seg1, seg2) {
+
+  //calc middle point position by preserving the two segs len
+
+// pseudo point finder
+// def: p1, bp, p2, p1 into np (new point)
+// 
+  
+}
+  // graph: 5 nodes
+
+  for each neighbor n of node:
+    for each neighbor f of n:
+      // find new loc of n, given dist(np y) == dist(n y)
+
+  node([x y], [& edges])
+}
+
+
+
+
 function draw () {
   var canvas = document.getElementById("scene"),
       ctx = canvas.getContext("2d");
