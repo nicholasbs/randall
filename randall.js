@@ -1,12 +1,49 @@
-function Point (x, y) {
+COMPASS_ROSE = {
+  N   : 270,
+  NNE : 292.5,
+  NE  : 315,
+  ENE : 337.5,
+  E   : 0,
+  ESE : 22.5,
+  SE  : 45,
+  SSE : 67.5,
+  S   : 90,
+  SSW : 112.5,
+  SW  : 135,
+  WSW : 157.5,
+  W   : 180,
+  WNW : 202.5,
+  NW  : 225,
+  NNW : 247.5
+}
+
+function Point (x, y, color) {
   this.x = x || 0;
   this.y = y || 0;
 
-  this.color = "rgb(10,200,10)";
+  this.color = color || "rgb(10,200,10)";
 }
 
 Point.prototype.toString = function () {
   return "(" + this.x + ", " + this.y + ")";
+}
+
+function Vector (length, direction) {
+  if (typeof direction === "string") {
+    direction = COMPASS_ROSE[direction.toUpperCase()];
+  }
+
+  this.direction = degToRad(direction);
+  this.length = length;
+
+  this.x = this.length * Math.cos(this.direction);
+  this.y = this.length * Math.sin(this.direction);
+}
+
+function Limb (length, direction, start) {
+  this.vector = new Vector(length, direction);
+  this.start = start;
+  this.end = new Point(start.x + this.vector.x, start.y + this.vector.y);
 }
 
 function slope (p1, p2) {
@@ -19,6 +56,7 @@ function distance (p1, p2) {
   return Math.sqrt(dy*dy + dx*dx);
 }
 
+// refactor this function
 function getJointPoint (p1, p2, dist) {
   var mid = pointAlongLine(p1, p2, 0.5),
       m = slope(p1, p2),
@@ -27,6 +65,7 @@ function getJointPoint (p1, p2, dist) {
       lastErr = Infinity,
       step;
 
+  // special behaviour to circumvent div0 error
   if (m === 0) {
     stepX = 0;
     stepY = 0.1;
@@ -38,11 +77,12 @@ function getJointPoint (p1, p2, dist) {
   do {
     err = Math.abs((distance(np, p1) - dist) + (distance(np, p2) - dist));
     if (err > lastErr) {
-      // Reverse direction if error is increasing
+      // reverse direction if error is increasing
       stepY *= -1;
       stepX *= -1;
     }
-    np.x -= stepX; // how to choose direction? i.e., + or -
+    // how to choose direction? i.e., + or -
+    np.x -= stepX;
     np.y -= stepY;
   } while (err > 1)
 
@@ -50,43 +90,41 @@ function getJointPoint (p1, p2, dist) {
 }
 
 function pointAlongLine (p1, p2, percent) {
-    var dx = p2.x - p1.x,
-        dy = p2.y - p1.y,
-        x = p1.x + dx * percent,
-        y = p1.y + dy * percent;
+  var dx = p2.x - p1.x,
+      dy = p2.y - p1.y,
+      x = p1.x + dx * percent,
+      y = p1.y + dy * percent;
 
-    return new Point(x, y);
+  return new Point(x, y);
 }
+
 /*(function Graph() {}
 
 // each node has a position (x, y) and a set of edges
 // keep edge distance fixed
 function moveNode(node, pos, graph) {
-  oldpos = graph.node.pos();
-  neighbors = all nodes directly connected to our node;
-  graph.node.pos(pos);
+oldpos = graph.node.pos();
+neighbors = all nodes directly connected to our node;
+graph.node.pos(pos);
 
-  // moved point, now solve length constraint
-  adjustGraphWithConstraint(new_graph);
+// moved point, now solve length constraint
+adjustGraphWithConstraint(new_graph);
 }
 
 // takes 3 points, incl the new point, also two lengths to preserve
 function adjustGraph...(g, seg1, seg2) {
 
-  //calc middle point position by preserving the two segs len
+//calc middle point position by preserving the two segs len
 
 // pseudo point finder
 // def: p1, bp, p2, p1 into np (new point)
 //
 
-}
-  // graph: 5 nodes
+for each neighbor n of node:
+for each neighbor f of n:
+// find new loc of n, given dist(np y) == dist(n y)
 
-  for each neighbor n of node:
-    for each neighbor f of n:
-      // find new loc of n, given dist(np y) == dist(n y)
-
-  node([x y], [& edges])
+node([x y], [& edges])
 }*/
 
 function drawPoint (p) {
@@ -96,94 +134,25 @@ function drawPoint (p) {
   ctx.fill();
 }
 
-COMPASS_ROSE = {
-  N   : 90,
-  NNE : 67.5,
-  NE  : 45,
-  ENE : 22.5,
-  E   : 0,
-  ESE : 337.5,
-  SE  : 315,
-  SSE : 292.5,
-  S   : 270,
-  SSW : 247.5,
-  SW  : 225,
-  WSW : 202.5,
-  W   : 180,
-  WNW : 157.5,
-  NW  : 135,
-  NNW : 112.5
-}
-
-function Vector (direction, magnitude) {
-  if (typeof direction === "string") {
-    direction = COMPASS_ROSE[direction.toUpperCase()]
-  }
-
-  this.direction = direction; // in degrees
-  this.magnitude = magnitude;
-
-  // want to take degrees and magnitude and turn it into vector pair [x, y]
-  // 0 degrees => (m, 0)
-  // 90 degrees => (0, m)
-  // 45 degrees => (sqrt(m), sqrt(m))
-
-  this.x = x;
-  this.y = y;
-}
-
-function calcBottom (vec, top) {
-  return bottom;
-}
-
-function Limb (length, direction, top) {
-  this.length = length;
-  this.direction = COMPASS_ROSE[direction.toUpperCase()];
-  this.top = top; // a point
-  this.bottom = calcBottom(length, direction, top);
-}
-
 function draw () {
   // Refactor to be less gross
   canvas = document.getElementById("scene");
   ctx = canvas.getContext("2d");
 
-  torso = new Limb(50, bottom: [200, 170]);
-  leftLeg = new Limb(40, top: torso.bottom);
+  torso = new Limb(50, "s", new Point(200, 200, "red"));
+  leftLeg = new Limb(50, "ssw", torso.end);
+  rightLeg = new Limb(50, "sse", torso.end);
+  leftArm = new Limb(30, "sw", torso.start);
+  rightArm = new Limb(30, "se", torso.start);
 
+  //var leftKnee = getJointPoint(torsoBottom, leftLeg, legLen/2),
+  //    rightKnee = getJointPoint(torsoBottom, rightLeg, legLen/2);
 
-
-  var torsoBottom = new Point(200, 250),
-      leftLeg = new Point(170, 340),
-      rightLeg = new Point(230, 340),
-      legLen = distance(torsoBottom, leftLeg),
-      torsoTop = new Point(200, 175),
-      leftArm = new Point(170, 185),
-      rightArm = new Point(230, 185),
-      armLen = distance(torsoTop, leftArm);
-
-  torsoBottom.y += 50;
-  torsoTop.y += 50;
-
-  var leftKnee = getJointPoint(torsoBottom, leftLeg, legLen/2),
-      rightKnee = getJointPoint(torsoBottom, rightLeg, legLen/2);
-
-  torsoBottom.color = "rgb(10, 10, 200)";
-
-  drawLine(torsoBottom, leftKnee);
-  drawLine(leftKnee, leftLeg);
-
-  drawLine(torsoBottom, rightKnee);
-  drawLine(rightKnee, rightLeg);
-
-  drawLine(torsoTop, torsoBottom);
-
-  drawLine(torsoTop, leftArm);
-  drawLine(torsoTop, rightArm);
-
-  function degToRad(deg) {
-    return Math.PI*deg/180;
-  }
+  drawLimb(torso);
+  drawLimb(leftLeg);
+  drawLimb(rightLeg);
+  drawLimb(leftArm);
+  drawLimb(rightArm);
 
   function rotatePoint(pivot, p, deg) {
     var x = p[0]-pivot[0],
@@ -194,7 +163,6 @@ function draw () {
 
     return [newX, newY];
   }
-
   // distance between all joint pairs is fixed
   // later xyz depth
 
@@ -243,6 +211,10 @@ function draw () {
 
     drawPoint(p1);
     drawPoint(p2);
+  }
+
+  function drawLimb (limb) {
+    drawLine(limb.start, limb.end);
   }
 
   Stickfigure.prototype.drawCircle = function(point, radius) {
@@ -314,3 +286,6 @@ function extend (obj1, obj2) {
   return o;
 }
 
+function degToRad(deg) {
+  return Math.PI*deg/180;
+}
