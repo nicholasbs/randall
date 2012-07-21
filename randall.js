@@ -61,10 +61,19 @@ function Limb (length, direction, start) {
   this.end = new Point(start.x + this.vector.x, start.y + this.vector.y);
 }
 
+function drawLimb (limb) {
+  ctx.beginPath();
+  ctx.moveTo(limb.start.x, limb.start.y);
+  ctx.lineTo(limb.end.x, limb.end.y);
+  ctx.stroke();
+
+  drawPoint(limb.start);
+  drawPoint(limb.end);
+}
 
 function draw () {
   // Refactor to be less gross
-  canvas = document.getElementById("scene");
+  var canvas = document.getElementById("scene");
   ctx = canvas.getContext("2d");
 
   torso = new Limb(50, "s", [200, 200]);
@@ -78,16 +87,6 @@ function draw () {
   drawLimb(rightLeg);
   drawLimb(leftArm);
   drawLimb(rightArm);
-
-  function drawLimb (limb) {
-    ctx.beginPath();
-    ctx.moveTo(limb.start.x, limb.start.y);
-    ctx.lineTo(limb.end.x, limb.end.y);
-    ctx.stroke();
-
-    drawPoint(limb.start);
-    drawPoint(limb.end);
-  }
 
   /*Stickfigure.prototype.drawCircle = function(point, radius) {
     ctx.arc(point[0], point[1], radius, 0, 2*Math.PI*radius, false);
