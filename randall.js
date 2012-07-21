@@ -18,6 +18,13 @@ function drawPoint (p) {
   ctx.fill();
 }
 
+function ensurePoint (p) {
+  if (!(p instanceof Point)) {
+    p = new Point(p[0], p[1]);
+  }
+  return p;
+}
+
 // Vector
 
 COMPASS_ROSE = {
@@ -53,12 +60,10 @@ function Vector (length, direction) {
 
 // Limb
 function Limb (length, direction, start) {
-  if (!(start instanceof Point)) {
-    start = new Point(start[0], start[1]);
-  }
   this.vector = new Vector(length, direction);
-  this.start = start;
-  this.end = new Point(start.x + this.vector.x, start.y + this.vector.y);
+  this.start = ensurePoint(start);
+  this.end = new Point(this.start.x + this.vector.x,
+      this.start.y + this.vector.y);
 }
 
 function drawLimb (limb) {
@@ -71,6 +76,29 @@ function drawLimb (limb) {
   drawPoint(limb.end);
 }
 
+// Circle
+function Circle (center, radius) {
+  this.center = center;
+  this.radius = radius;
+}
+
+// Head
+
+function Head (size, neck) {
+  this.neck = ensurePoint(neck);
+  var radius = size / 2,
+      center = new Point(this.neck.x, this.neck.y - radius);
+  this.circle = new Circle(center, radius);
+  console.log(this);
+}
+
+function drawHead (head) {
+  ctx.beginPath();
+  ctx.arc(head.circle.center.x, head.circle.center.y, head.circle.radius,
+      0, 2*Math.PI*head.circle.radius, false);
+  ctx.stroke();
+}
+
 function draw () {
   // Refactor to be less gross
   var canvas = document.getElementById("scene");
@@ -81,6 +109,7 @@ function draw () {
   rightLeg = new Limb(50, "sse", torso.end);
   leftArm = new Limb(30, "sw", torso.start);
   rightArm = new Limb(30, "se", torso.start);
+  head = new Head(30, torso.start);
 
   drawLimb(torso);
   drawLimb(leftLeg);
@@ -88,15 +117,7 @@ function draw () {
   drawLimb(leftArm);
   drawLimb(rightArm);
 
-  /*Stickfigure.prototype.drawCircle = function(point, radius) {
-    ctx.arc(point[0], point[1], radius, 0, 2*Math.PI*radius, false);
-  }
-
-  Stickfigure.prototype.drawHead = function() {
-    ctx.beginPath();
-    this.drawCircle(rotatePoint(this.TORSO_TOP, [this.TORSO_TOP[0], this.TORSO_TOP[1] - this.HEAD_RADIUS], this.options.head), this.HEAD_RADIUS);
-    ctx.stroke();
-  }*/
+  drawHead(head);
 }
 
 
